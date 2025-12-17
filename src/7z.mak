@@ -4,7 +4,7 @@ CXX     = $(CROSS)g++
 WINDRES = $(CROSS)windres
 LDFLAGS = -mwindows -s -Wl,--gc-sections
 LDLIBS  = -lcomdlg32 -lole32 -loleaut32 -luuid
-CFLAGS  = -fno-ident -Oz \
+CFLAGS  = -fno-ident -O2 \
   -DZ7_SFX \
   -DZ7_EXTRACT_ONLY \
   -DZ7_NO_CRYPTO \
