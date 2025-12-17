@@ -18,6 +18,9 @@ ARG MPFR_VERSION=4.2.2
 ARG PDCURSES_VERSION=3.9
 ARG VIM_VERSION=9.0
 
+# Compilation fails with OOM even with 64GB RAM with more than 8 threads...
+ARG JOBS=16
+
 RUN apt-get update && apt-get install --yes --no-install-recommends \
   build-essential curl libgmp-dev libmpc-dev libmpfr-dev m4 p7zip-full
 
@@ -78,7 +81,7 @@ RUN /binutils-$BINUTILS_VERSION/configure \
         --disable-nls \
         --with-static-standard-libraries \
         --disable-multilib \
- && make MAKEINFO=true -j$(nproc) \
+ && make MAKEINFO=true -j$JOBS \
  && make MAKEINFO=true install
 
 # Fixes i686 Windows XP regression
@@ -92,7 +95,7 @@ RUN echo '#include <crtdefs.h>' \
         --prefix=/bootstrap \
         --host=$ARCH \
         --with-default-msvcrt=msvcrt-os \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /bootstrap
@@ -123,7 +126,7 @@ RUN cat $PREFIX/src/gcc-*.patch | patch -d/gcc-$GCC_VERSION -p1 \
         CFLAGS="-Os" \
         CXXFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) all-gcc \
+ && make -j$JOBS all-gcc \
  && make install-gcc
 
 ENV PATH="/bootstrap/bin:${PATH}"
@@ -147,7 +150,7 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-crt/configure \
         --enable-lib64 \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /x-winpthreads
@@ -159,11 +162,11 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-libraries/winpthreads/configure \
         --disable-shared \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /x-gcc
-RUN make -j$(nproc) \
+RUN make -j$JOBS \
  && make install
 
 # Cross-compile GCC
@@ -178,7 +181,7 @@ RUN /binutils-$BINUTILS_VERSION/configure \
         --with-static-standard-libraries \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make MAKEINFO=true tooldir=$PREFIX -j$(nproc) \
+ && make MAKEINFO=true tooldir=$PREFIX -j$JOBS \
  && make MAKEINFO=true tooldir=$PREFIX install \
  && rm $PREFIX/bin/elfedit.exe $PREFIX/bin/readelf.exe
 
@@ -193,7 +196,7 @@ RUN /gmp-$GMP_VERSION/configure \
         CFLAGS="-std=gnu17 -Os" \
         CXXFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /mpfr
@@ -206,7 +209,7 @@ RUN /mpfr-$MPFR_VERSION/configure \
         CC=$ARCH-gcc \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /mpc
@@ -220,7 +223,7 @@ RUN /mpc-$MPC_VERSION/configure \
         CC=$ARCH-gcc \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /mingw-headers
@@ -229,7 +232,7 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-headers/configure \
         --host=$ARCH \
         --enable-idl \
         --with-default-msvcrt=msvcrt-os \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /mingw-crt
@@ -243,7 +246,7 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-crt/configure \
         --enable-lib64 \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /winpthreads
@@ -255,7 +258,7 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-libraries/winpthreads/configure \
         --disable-shared \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /gcc
@@ -292,7 +295,7 @@ RUN echo 'BEGIN {print "pecoff"}' \
         CFLAGS="-Os" \
         CXXFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install \
  && rm -f $PREFIX/bin/ld.bfd.exe \
  && $ARCH-gcc -DEXE=g++.exe -DCMD=c++ \
@@ -330,7 +333,7 @@ RUN patch -d/mingw-w64-v$MINGW_VERSION -p1 <$PREFIX/src/gendef-silent.patch \
         --host=$ARCH \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && cp gendef.exe $PREFIX/bin/
 
 WORKDIR /mingw-w64-v$MINGW_VERSION/mingw-w64-tools/widl
@@ -341,7 +344,7 @@ RUN ./configure \
         --with-widl-includedir=$PREFIX/include \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && cp widl.exe $PREFIX/bin/ \
  && $ARCH-gcc -nostartfiles -Oz -s -o $PREFIX/bin/uuidgen.exe \
         $PREFIX/src/uuidgen.c -lmemory
@@ -356,11 +359,11 @@ RUN /expat-$EXPAT_VERSION/configure \
         --without-tests \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /PDCurses-$PDCURSES_VERSION
-RUN make -j$(nproc) -C wincon \
+RUN make -j$JOBS -C wincon \
         CC=$ARCH-gcc AR=$ARCH-ar CFLAGS="-I.. -Os -DPDC_WIDE" pdcurses.a \
  && cp wincon/pdcurses.a /deps/lib/libcurses.a \
  && cp curses.h /deps/include
@@ -373,7 +376,7 @@ RUN /libiconv-$LIBICONV_VERSION/configure \
         --disable-shared \
         CFLAGS="-Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && make install
 
 WORKDIR /gdb
@@ -386,7 +389,7 @@ RUN cat $PREFIX/src/gdb-*.patch | patch -d/gdb-$GDB_VERSION -p1 \
         CFLAGS="-std=gnu17 -Os -D__MINGW_USE_VC2005_COMPAT -DPDC_WIDE -I/deps/include" \
         CXXFLAGS="-Os -D__MINGW_USE_VC2005_COMPAT -DPDC_WIDE -I/deps/include" \
         LDFLAGS="-s -L/deps/lib" \
- && make MAKEINFO=true -j$(nproc) \
+ && make MAKEINFO=true -j$JOBS \
  && cp gdb/.libs/gdb.exe gdbserver/gdbserver.exe $PREFIX/bin/
 
 WORKDIR /make
@@ -397,7 +400,7 @@ RUN cat $PREFIX/src/make-*.patch | patch -d/make-$MAKE_VERSION -p1 \
         --disable-nls \
         CFLAGS="-std=gnu17 -Os" \
         LDFLAGS="-s" \
- && make -j$(nproc) \
+ && make -j$JOBS \
  && cp make.exe $PREFIX/bin/ \
  && $ARCH-gcc -DEXE=make.exe -DCMD=make \
         -Os -fno-asynchronous-unwind-tables \
@@ -423,7 +426,7 @@ RUN cat $PREFIX/src/busybox-*.patch | patch -p1 \
  && sed -ri 's/^(CONFIG_UNLINK)=y/\1=n/' .config \
  && sed -ri 's/^(CONFIG_VI)=y/\1=n/' .config \
  && sed -ri 's/^(CONFIG_XXD)=y/\1=n/' .config \
- && make -j$(nproc) CROSS_COMPILE=$ARCH- \
+ && make -j$JOBS CROSS_COMPILE=$ARCH- \
     CONFIG_EXTRA_CFLAGS="-D_WIN32_WINNT=0x502" \
  && cp busybox.exe $PREFIX/bin/
 
@@ -449,7 +452,7 @@ RUN $ARCH-gcc -Os -fno-asynchronous-unwind-tables -Wl,--gc-sections -s \
 WORKDIR /vim90
 COPY src/rexxd.c src/vim-*.patch $PREFIX/src/
 RUN cat $PREFIX/src/vim-*.patch | patch -p1 \
- && ARCH= make -C src -j$(nproc) -f Make_ming.mak CC="$ARCH-gcc -std=gnu17" \
+ && ARCH= make -C src -j$JOBS -f Make_ming.mak CC="$ARCH-gcc -std=gnu17" \
         OPTIMIZE=SIZE STATIC_STDCPLUS=yes HAS_GCC_EH=no \
         UNDER_CYGWIN=yes CROSS=yes CROSS_COMPILE=$ARCH- \
         FEATURES=HUGE VIMDLL=yes NETBEANS=no WINVER=0x0501 \
@@ -471,8 +474,8 @@ RUN cat $PREFIX/src/vim-*.patch | patch -p1 \
 
 WORKDIR /ctags-$CTAGS_VERSION
 RUN sed -i /RT_MANIFEST/d win32/ctags.rc \
- && make -j$(nproc) -f mk_mingw.mak CC=gcc packcc.exe \
- && make -j$(nproc) -f mk_mingw.mak \
+ && make -j$JOBS -f mk_mingw.mak CC=gcc packcc.exe \
+ && make -j$JOBS -f mk_mingw.mak \
         CC=$ARCH-gcc WINDRES=$ARCH-windres \
         OPT= CFLAGS=-Os LDFLAGS=-s \
  && cp ctags.exe $PREFIX/bin/
@@ -482,7 +485,7 @@ COPY src/7z.mak $PREFIX/src/
 RUN sed -i s/CommCtrl/commctrl/ $(grep -Rl CommCtrl CPP/) \
  && sed -i s%7z\\.ico%$PREFIX/src/w64devkit.ico% \
            CPP/7zip/Bundles/SFXWin/resource.rc \
- && make -f $PREFIX/src/7z.mak -j$(nproc) CROSS=$ARCH-
+ && make -f $PREFIX/src/7z.mak -j$JOBS CROSS=$ARCH-
 
 # Pack up a release
 
