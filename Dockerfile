@@ -18,7 +18,7 @@ ARG MPFR_VERSION=4.2.2
 ARG PDCURSES_VERSION=3.9
 ARG VIM_VERSION=9.0
 
-# Compilation fails with OOM even with 64GB RAM with more than 8 threads...
+# Compilation fails with OOM even with 64GB RAM with more than 16 threads...
 ARG JOBS=16
 
 ARG NTVER=0x0600
@@ -124,11 +124,11 @@ RUN cat $PREFIX/src/gcc-*.patch | patch -d/gcc-$GCC_VERSION -p1 \
         --disable-nls \
         --disable-lto \
         --disable-multilib \
-        CFLAGS_FOR_TARGET="-Os" \
-        CXXFLAGS_FOR_TARGET="-Os" \
+        CFLAGS_FOR_TARGET="-O2" \
+        CXXFLAGS_FOR_TARGET="-O2" \
         LDFLAGS_FOR_TARGET="-s" \
-        CFLAGS="-Os" \
-        CXXFLAGS="-Os" \
+        CFLAGS="-O2" \
+        CXXFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS all-gcc \
  && make install-gcc
@@ -152,7 +152,7 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-crt/configure \
         --disable-dependency-tracking \
         --disable-lib32 \
         --enable-lib64 \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install
@@ -164,7 +164,7 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-libraries/winpthreads/configure \
         --host=$ARCH \
         --enable-static \
         --disable-shared \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install
@@ -183,7 +183,7 @@ RUN /binutils-$BINUTILS_VERSION/configure \
         --target=$ARCH \
         --disable-nls \
         --with-static-standard-libraries \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make MAKEINFO=true tooldir=$PREFIX -j$JOBS \
  && make MAKEINFO=true tooldir=$PREFIX install \
@@ -197,8 +197,8 @@ RUN /gmp-$GMP_VERSION/configure \
         --enable-static \
         --disable-shared \
         CC=$ARCH-gcc \
-        CFLAGS="-std=gnu17 -Os" \
-        CXXFLAGS="-Os" \
+        CFLAGS="-std=gnu17 -O2" \
+        CXXFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install
@@ -211,7 +211,7 @@ RUN /mpfr-$MPFR_VERSION/configure \
         --enable-static \
         --disable-shared \
         CC=$ARCH-gcc \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install
@@ -225,7 +225,7 @@ RUN /mpc-$MPC_VERSION/configure \
         --enable-static \
         --disable-shared \
         CC=$ARCH-gcc \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install
@@ -249,7 +249,7 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-crt/configure \
         --disable-dependency-tracking \
         --disable-lib32 \
         --enable-lib64 \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install
@@ -261,7 +261,7 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-libraries/winpthreads/configure \
         --host=$ARCH \
         --enable-static \
         --disable-shared \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install
@@ -294,30 +294,30 @@ RUN echo 'BEGIN {print "pecoff"}' \
         --disable-nls \
         --disable-win32-registry \
         --enable-mingw-wildcard \
-        CFLAGS_FOR_TARGET="-Os" \
-        CXXFLAGS_FOR_TARGET="-Os" \
+        CFLAGS_FOR_TARGET="-O2" \
+        CXXFLAGS_FOR_TARGET="-O2" \
         LDFLAGS_FOR_TARGET="-s" \
-        CFLAGS="-Os" \
-        CXXFLAGS="-Os" \
+        CFLAGS="-O2" \
+        CXXFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install \
  && rm -f $PREFIX/bin/ld.bfd.exe \
  && $ARCH-gcc -DEXE=g++.exe -DCMD=c++ \
-        -Os -fno-asynchronous-unwind-tables \
+        -O2 -fno-asynchronous-unwind-tables \
         -Wl,--gc-sections -s -nostdlib \
         -o $PREFIX/bin/c++.exe \
         $PREFIX/src/alias.c -lkernel32
 
 # Create various tool aliases
 RUN $ARCH-gcc -DEXE=gcc.exe -DCMD=cc \
-        -Os -fno-asynchronous-unwind-tables -Wl,--gc-sections -s -nostdlib \
+        -O2 -fno-asynchronous-unwind-tables -Wl,--gc-sections -s -nostdlib \
         -o $PREFIX/bin/cc.exe $PREFIX/src/alias.c -lkernel32 \
  && $ARCH-gcc -DEXE=gcc.exe -DCMD="cc -std=c99" \
-        -Os -fno-asynchronous-unwind-tables -Wl,--gc-sections -s -nostdlib \
+        -O2 -fno-asynchronous-unwind-tables -Wl,--gc-sections -s -nostdlib \
         -o $PREFIX/bin/c99.exe $PREFIX/src/alias.c -lkernel32 \
  && $ARCH-gcc -DEXE=gcc.exe -DCMD="cc -ansi" \
-        -Os -fno-asynchronous-unwind-tables -Wl,--gc-sections -s -nostdlib \
+        -O2 -fno-asynchronous-unwind-tables -Wl,--gc-sections -s -nostdlib \
         -o $PREFIX/bin/c89.exe $PREFIX/src/alias.c -lkernel32 \
  && printf '%s\n' addr2line ar as c++filt cpp dlltool dllwrap elfedit g++ \
       gcc gcc-ar gcc-nm gcc-ranlib gcov gcov-dump gcov-tool gendef gfortran \
@@ -325,7 +325,7 @@ RUN $ARCH-gcc -DEXE=gcc.exe -DCMD=cc \
       windmc windres \
     | xargs -I{} -P$(nproc) \
           $ARCH-gcc -DEXE={}.exe -DCMD=$ARCH-{} \
-            -Os -fno-asynchronous-unwind-tables \
+            -O2 -fno-asynchronous-unwind-tables \
             -Wl,--gc-sections -s -nostdlib \
             -o $PREFIX/bin/$ARCH-{}.exe $PREFIX/src/alias.c -lkernel32
 
@@ -336,7 +336,7 @@ COPY src/gendef-silent.patch $PREFIX/src/
 RUN patch -d/mingw-w64-v$MINGW_VERSION -p1 <$PREFIX/src/gendef-silent.patch \
  && /mingw-w64-v$MINGW_VERSION/mingw-w64-tools/gendef/configure \
         --host=$ARCH \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && cp gendef.exe $PREFIX/bin/
@@ -347,11 +347,11 @@ RUN ./configure \
         --host=$ARCH \
         --prefix=$PREFIX \
         --with-widl-includedir=$PREFIX/include \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && cp widl.exe $PREFIX/bin/ \
- && $ARCH-gcc -nostartfiles -Oz -s -o $PREFIX/bin/uuidgen.exe \
+ && $ARCH-gcc -nostartfiles -O2 -s -o $PREFIX/bin/uuidgen.exe \
         $PREFIX/src/uuidgen.c -lmemory
 
 WORKDIR /expat
@@ -362,14 +362,14 @@ RUN /expat-$EXPAT_VERSION/configure \
         --without-docbook \
         --without-examples \
         --without-tests \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install
 
 WORKDIR /PDCurses-$PDCURSES_VERSION
 RUN make -j$JOBS -C wincon \
-        CC=$ARCH-gcc AR=$ARCH-ar CFLAGS="-I.. -Os -DPDC_WIDE" pdcurses.a \
+        CC=$ARCH-gcc AR=$ARCH-ar CFLAGS="-I.. -O2 -DPDC_WIDE" pdcurses.a \
  && cp wincon/pdcurses.a /deps/lib/libcurses.a \
  && cp curses.h /deps/include
 
@@ -379,7 +379,7 @@ RUN /libiconv-$LIBICONV_VERSION/configure \
         --host=$ARCH \
         --disable-nls \
         --disable-shared \
-        CFLAGS="-Os" \
+        CFLAGS="-O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && make install
@@ -391,8 +391,8 @@ RUN cat $PREFIX/src/gdb-*.patch | patch -d/gdb-$GDB_VERSION -p1 \
  && /gdb-$GDB_VERSION/configure \
         --host=$ARCH \
         --enable-tui \
-        CFLAGS="-std=gnu17 -Os -D__MINGW_USE_VC2005_COMPAT -DPDC_WIDE -I/deps/include" \
-        CXXFLAGS="-Os -D__MINGW_USE_VC2005_COMPAT -DPDC_WIDE -I/deps/include" \
+        CFLAGS="-std=gnu17 -O2 -D__MINGW_USE_VC2005_COMPAT -DPDC_WIDE -I/deps/include" \
+        CXXFLAGS="-O2 -D__MINGW_USE_VC2005_COMPAT -DPDC_WIDE -I/deps/include" \
         LDFLAGS="-s -L/deps/lib" \
  && make MAKEINFO=true -j$JOBS \
  && cp gdb/.libs/gdb.exe gdbserver/gdbserver.exe $PREFIX/bin/
@@ -403,12 +403,12 @@ RUN cat $PREFIX/src/make-*.patch | patch -d/make-$MAKE_VERSION -p1 \
  && /make-$MAKE_VERSION/configure \
         --host=$ARCH \
         --disable-nls \
-        CFLAGS="-std=gnu17 -Os" \
+        CFLAGS="-std=gnu17 -O2" \
         LDFLAGS="-s" \
  && make -j$JOBS \
  && cp make.exe $PREFIX/bin/ \
  && $ARCH-gcc -DEXE=make.exe -DCMD=make \
-        -Os -fno-asynchronous-unwind-tables \
+        -O2 -fno-asynchronous-unwind-tables \
         -Wl,--gc-sections -s -nostdlib \
         -o $PREFIX/bin/mingw32-make.exe $PREFIX/src/alias.c -lkernel32
 
@@ -436,7 +436,7 @@ RUN cat $PREFIX/src/busybox-*.patch | patch -p1 \
  && cp busybox.exe $PREFIX/bin/
 
 # Create BusyBox command aliases (like "busybox --install")
-RUN $ARCH-gcc -Os -fno-asynchronous-unwind-tables -Wl,--gc-sections -s \
+RUN $ARCH-gcc -O2 -fno-asynchronous-unwind-tables -Wl,--gc-sections -s \
       -nostdlib -o alias.exe $PREFIX/src/busybox-alias.c -lkernel32 \
  && printf '%s\n' arch ash awk base32 base64 basename bash bc bunzip2 bzcat \
       bzip2 cal cat chattr chmod cksum clear cmp comm cp cpio crc32 cut date \
@@ -482,7 +482,7 @@ RUN sed -i /RT_MANIFEST/d win32/ctags.rc \
  && make -j$JOBS -f mk_mingw.mak CC=gcc packcc.exe \
  && make -j$JOBS -f mk_mingw.mak \
         CC=$ARCH-gcc WINDRES=$ARCH-windres \
-        OPT= CFLAGS=-Os LDFLAGS=-s \
+        OPT= CFLAGS=-O2 LDFLAGS=-s \
  && cp ctags.exe $PREFIX/bin/
 
 WORKDIR /7z
@@ -503,24 +503,24 @@ RUN printf "id ICON \"$PREFIX/src/w64devkit.ico\"" >w64devkit.rc \
         -fno-builtin -Wl,--gc-sections -s -o $PREFIX/w64devkit.exe \
         $PREFIX/src/w64devkit.c w64devkit.o -lkernel32 -luser32 -lmemory \
  && $ARCH-gcc \
-        -Os -fno-asynchronous-unwind-tables \
+        -O2 -fno-asynchronous-unwind-tables \
         -Wl,--gc-sections -s -nostdlib \
         -o $PREFIX/bin/debugbreak.exe $PREFIX/src/debugbreak.c \
         -lkernel32 \
  && $ARCH-gcc \
-        -Os -fno-asynchronous-unwind-tables -fno-builtin -Wl,--gc-sections \
+        -O2 -fno-asynchronous-unwind-tables -fno-builtin -Wl,--gc-sections \
         -s -nostdlib -o $PREFIX/bin/pkg-config.exe $PREFIX/src/pkg-config.c \
         -lkernel32 \
  && $ARCH-gcc \
-        -Os -fno-asynchronous-unwind-tables -fno-builtin -Wl,--gc-sections \
+        -O2 -fno-asynchronous-unwind-tables -fno-builtin -Wl,--gc-sections \
         -s -nostdlib -o $PREFIX/bin/vc++filt.exe $PREFIX/src/vc++filt.c \
         -lkernel32 -lshell32 -ldbghelp \
  && $ARCH-gcc \
-        -Os -fno-asynchronous-unwind-tables -fno-builtin -Wl,--gc-sections \
+        -O2 -fno-asynchronous-unwind-tables -fno-builtin -Wl,--gc-sections \
         -s -nostdlib -o $PREFIX/bin/peports.exe $PREFIX/src/peports.c \
-        -lkernel32 -lshell32 \
+        -lkernel32 -lshell32 -lmemory \
  && $ARCH-gcc -DEXE=pkg-config.exe -DCMD=pkg-config \
-        -Os -fno-asynchronous-unwind-tables -Wl,--gc-sections -s -nostdlib \
+        -O2 -fno-asynchronous-unwind-tables -Wl,--gc-sections -s -nostdlib \
         -o $PREFIX/bin/$ARCH-pkg-config.exe $PREFIX/src/alias.c -lkernel32 \
  && sed -i s/'\<ARCH\>'/$ARCH/g $PREFIX/src/profile \
  && mkdir -p $PREFIX/lib/pkgconfig \
