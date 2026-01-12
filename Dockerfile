@@ -19,7 +19,7 @@ ARG PDCURSES_VERSION=3.9
 ARG VIM_VERSION=9.0
 
 # Compilation fails with OOM even with 64GB RAM with more than 16 threads...
-ARG JOBS=8
+ARG JOBS=16
 
 ARG NTVER=0x0502
 
