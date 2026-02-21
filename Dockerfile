@@ -71,7 +71,7 @@ ARG ARCH=x86_64-w64-mingw32
 # Build cross-compiler
 
 WORKDIR /binutils-$BINUTILS_VERSION
-COPY src/binutils-*.patch $PREFIX/src/
+COPY src/patches/binutils-*.patch $PREFIX/src/
 RUN sed -ri 's/(static bool insert_timestamp = )/\1!/' ld/emultempl/pe*.em \
  && sed -ri 's/(int pe_enable_stdcall_fixup = )/\1!!/' ld/emultempl/pe*.em \
  && sed -ri 's/(static int use_big_obj = )/\1!/' gas/config/tc-i386.c \
@@ -106,7 +106,7 @@ WORKDIR /bootstrap
 RUN ln -s /bootstrap mingw
 
 WORKDIR /x-gcc
-COPY src/gcc-*.patch $PREFIX/src/
+COPY src/patches/gcc-*.patch $PREFIX/src/
 RUN cat $PREFIX/src/gcc-*.patch | patch -d/gcc-$GCC_VERSION -p1 \
  && /gcc-$GCC_VERSION/configure \
         --prefix=/bootstrap \
@@ -268,7 +268,7 @@ RUN /mingw-w64-v$MINGW_VERSION/mingw-w64-libraries/winpthreads/configure \
  && make install
 
 WORKDIR /gcc
-COPY src/crossgcc-*.patch $PREFIX/src/
+COPY src/patches/crossgcc-*.patch $PREFIX/src/
 RUN echo 'BEGIN {print "pecoff"}' \
          >/gcc-$GCC_VERSION/libbacktrace/filetype.awk \
  && cat $PREFIX/src/crossgcc-*.patch | patch -d/gcc-$GCC_VERSION -p1 \
@@ -334,7 +334,7 @@ RUN $ARCH-gcc -DEXE=gcc.exe -DCMD=cc \
 # Build some extra development tools
 
 WORKDIR /mingw-tools/gendef
-COPY src/gendef-silent.patch $PREFIX/src/
+COPY src/patches/gendef-silent.patch $PREFIX/src/
 RUN patch -d/mingw-w64-v$MINGW_VERSION -p1 <$PREFIX/src/gendef-silent.patch \
  && /mingw-w64-v$MINGW_VERSION/mingw-w64-tools/gendef/configure \
         --host=$ARCH \
@@ -387,7 +387,7 @@ RUN /libiconv-$LIBICONV_VERSION/configure \
  && make install
 
 WORKDIR /gdb
-COPY src/gdb-*.patch $PREFIX/src/
+COPY src/patches/gdb-*.patch $PREFIX/src/
 RUN cat $PREFIX/src/gdb-*.patch | patch -d/gdb-$GDB_VERSION -p1 \
  && sed -i 's/quiet = 0/quiet = 1/' /gdb-$GDB_VERSION/gdb/main.c \
  && /gdb-$GDB_VERSION/configure \
@@ -400,7 +400,7 @@ RUN cat $PREFIX/src/gdb-*.patch | patch -d/gdb-$GDB_VERSION -p1 \
  && cp gdb/.libs/gdb.exe gdbserver/gdbserver.exe $PREFIX/bin/
 
 WORKDIR /make
-COPY src/make-*.patch $PREFIX/src/
+COPY src/patches/make-*.patch $PREFIX/src/
 RUN cat $PREFIX/src/make-*.patch | patch -d/make-$MAKE_VERSION -p1 \
  && /make-$MAKE_VERSION/configure \
         --host=$ARCH \
@@ -415,7 +415,7 @@ RUN cat $PREFIX/src/make-*.patch | patch -d/make-$MAKE_VERSION -p1 \
         -o $PREFIX/bin/mingw32-make.exe $PREFIX/src/alias.c -lkernel32
 
 WORKDIR /busybox-w32
-COPY src/busybox-* $PREFIX/src/
+COPY src/patches/busybox-*.patch $PREFIX/src/
 RUN cat $PREFIX/src/busybox-*.patch | patch -p1 \
  && make mingw64u_defconfig \
  && sed -ri 's/^(CONFIG_AR)=y/\1=n/' .config \
@@ -457,7 +457,7 @@ RUN $ARCH-gcc -O2 -fno-asynchronous-unwind-tables -Wl,--gc-sections -s \
 
 # TODO: Either somehow use $VIM_VERSION or normalize the workdir
 WORKDIR /vim90
-COPY src/rexxd.c src/vim-*.patch $PREFIX/src/
+COPY src/rexxd.c src/patches/vim-*.patch $PREFIX/src/
 RUN cat $PREFIX/src/vim-*.patch | patch -p1 \
  && ARCH= make -C src -j$JOBS -f Make_ming.mak CC="$ARCH-gcc -std=gnu17" \
         OPTIMIZE=SIZE STATIC_STDCPLUS=yes HAS_GCC_EH=no \
