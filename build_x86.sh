@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2025 Alex313031
+# Copyright (c) 2026 Alex313031
 
 YEL='\033[1;33m' # Yellow
 CYA='\033[1;96m' # Cyan
@@ -19,4 +19,4 @@ export HERE=${PWD}
 
 docker build -t w64devkit -f ${HERE}/Dockerfile.win32 ${HERE} &&
 
-docker run --rm w64devkit > ${HERE}/win32devkit_x86.exe
+docker run --rm w64devkit > ${HERE}/win32devkit.exe
