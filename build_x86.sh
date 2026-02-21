@@ -17,6 +17,6 @@ try() { "$@" || die "${RED}Failed $*"; }
 
 export HERE=${PWD}
 
-docker build -t w64devkit -f ${HERE}/Dockerfile.win32 ${HERE} &&
+docker build -t win32devkit -f ${HERE}/Dockerfile.win32 ${HERE} &&
 
-docker run --rm w64devkit > ${HERE}/win32devkit.exe
+docker run win32devkit > ${HERE}/win32devkit.exe

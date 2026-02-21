@@ -19,5 +19,5 @@ export HERE=${PWD}
 
 docker build -t w64devkit -f ${HERE}/Dockerfile ${HERE} &&
 
-docker run --rm w64devkit > ${HERE}/win64devkit.exe
+docker run w64devkit > ${HERE}/win64devkit.exe
 
