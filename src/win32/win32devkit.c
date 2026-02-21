@@ -1,11 +1,11 @@
-// Tiny, standalone launcher for w64devkit
+// Tiny, standalone launcher for win32devkit
 // * Sets $W64DEVKIT to the release version (-DVERSION)
 // * Sets $W64DEVKIT_HOME to the install location
-// * Maybe sets $HOME according to w64devkit.ini
-// * Maybe sets $PATH according to w64devkit.ini
+// * Maybe sets $HOME according to win32devkit.ini
+// * Maybe sets $PATH according to win32devkit.ini
 // * Starts a login shell with "sh -l"
 //
-// $ gcc -DVERSION="$VERSION" -nostartfiles -o w64devkit.exe
+// $ gcc -DVERSION="$VERSION" -nostartfiles -o win32devkit.exe
 //       w64devkit.c -lmemory
 //
 // This is free and unencumbered software released into the public domain.
@@ -108,7 +108,7 @@ static b32 s8equals(s8 a, s8 b)
 
 static void fatal(c16 *msg)
 {
-    MessageBoxW(0, msg, u"w64devkit launcher Error", 0x10);
+    MessageBoxW(0, msg, u"win32devkit launcher Error", 0x10);
     ExitProcess(2);
 }
 
@@ -392,19 +392,19 @@ typedef struct {
 static Config newconfig()
 {
     Config r = {};
-    r.title = u"w64devkit";
+    r.title = u"win32devkit";
     r.path_type = sym_inherit;
     return r;
 }
 
-// Read entries from w64devkit.ini. Expands environment variables, and
+// Read entries from win32devkit.ini. Expands environment variables, and
 // if "home" is relative, converts it to an absolute path. Before the
-// call, the working directory must be location of w64devkit.exe.
+// call, the working directory must be location of win32devkit.exe.
 static Config loadconfig(Arena *perm, Arena scratch)
 {
     Config conf = newconfig();
 
-    s8 ini = loadfile(u"w64devkit.ini", &scratch);
+    s8 ini = loadfile(u"win32devkit.ini", &scratch);
     if (!ini.s) return conf;
 
     IniParser *p = new(&scratch, IniParser, 1);
@@ -568,7 +568,7 @@ static i32 w64devkit()
     SetEnvironmentVariableW(u"W64DEVKIT", LSTR(VERSION));  // ignore errors
     #endif
 
-    // Maybe set HOME from w64devkit.ini
+    // Maybe set HOME from win32devkit.ini
     Config conf = newconfig();
     if (SetCurrentDirectoryW(path.buf)) {
         conf = loadconfig(perm, scratch);
@@ -593,7 +593,7 @@ static i32 w64devkit()
     case sym_strict:
         break;
     default:
-        fatal(u"w64devkit.ini: 'path type' must be inherit|minimal|strict");
+        fatal(u"win32devkit.ini: 'path type' must be inherit|minimal|strict");
     }
     buf16c16(&path, 0);  // null terminator
     if (path.err || !SetEnvironmentVariableW(u"PATH", path.buf)) {

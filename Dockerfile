@@ -21,6 +21,7 @@ ARG VIM_VERSION=9.0
 # Compilation fails with OOM even with 64GB RAM with more than 16 threads...
 ARG JOBS=16
 
+# Target Windows Server 2003/XP x64 at minimum
 ARG NTVER=0x0502
 
 RUN apt-get update && apt-get install --yes --no-install-recommends \
@@ -61,7 +62,7 @@ RUN sha256sum -c $PREFIX/src/SHA256SUMS \
  && tar xjf mingw-w64-v$MINGW_VERSION.tar.bz2 \
  && tar xzf PDCurses-$PDCURSES_VERSION.tar.gz \
  && tar xjf vim-$VIM_VERSION.tar.bz2
-COPY src/w64devkit.c src/w64devkit.ico src/libmemory.c src/libchkstk.S \
+COPY src/w64devkit.c src/w64devkit.rc src/w64devkit.ico src/libmemory.c src/libchkstk.S \
      src/alias.c src/debugbreak.c src/pkg-config.c src/vc++filt.c \
      src/peports.c src/profile $PREFIX/src/
 
@@ -497,9 +498,8 @@ RUN sed -i s/CommCtrl/commctrl/ $(grep -Rl CommCtrl CPP/) \
 
 WORKDIR /
 RUN rm -rf $PREFIX/share/man/ $PREFIX/share/info/ $PREFIX/share/gcc-*
-COPY README.md Dockerfile w64devkit.ini $PREFIX/
-RUN printf "id ICON \"$PREFIX/src/w64devkit.ico\"" >w64devkit.rc \
- && $ARCH-windres -o w64devkit.o w64devkit.rc \
+COPY README.md Dockerfile src/w64devkit.ini $PREFIX/
+RUN $ARCH-windres -o w64devkit.o $PREFIX/src/w64devkit.rc \
  && $ARCH-gcc -DVERSION=$VERSION -nostdlib -fno-asynchronous-unwind-tables \
         -fno-builtin -Wl,--gc-sections -s -o $PREFIX/w64devkit.exe \
         $PREFIX/src/w64devkit.c w64devkit.o -lkernel32 -luser32 -lmemory \
