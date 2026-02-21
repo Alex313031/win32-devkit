@@ -1,7 +1,7 @@
 FROM debian:trixie-slim
 
-ARG VERSION=2.5.0
-ARG PREFIX=/w64devkit
+ARG VERSION=2.5.1
+ARG PREFIX=/win64devkit
 ARG Z7_VERSION=2301
 ARG BINUTILS_VERSION=2.45
 ARG BUSYBOX_VERSION=FRP-5857-g3681e397f
@@ -415,7 +415,7 @@ RUN cat $PREFIX/src/make-*.patch | patch -d/make-$MAKE_VERSION -p1 \
         -o $PREFIX/bin/mingw32-make.exe $PREFIX/src/alias.c -lkernel32
 
 WORKDIR /busybox-w32
-COPY src/patches/busybox-*.patch $PREFIX/src/
+COPY src/patches/busybox-*.patch src/busybox-alias.c $PREFIX/src/
 RUN cat $PREFIX/src/busybox-*.patch | patch -p1 \
  && make mingw64u_defconfig \
  && sed -ri 's/^(CONFIG_AR)=y/\1=n/' .config \
